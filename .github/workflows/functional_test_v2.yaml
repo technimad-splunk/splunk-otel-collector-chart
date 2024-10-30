@@ -1,4 +1,4 @@
-name: functional-tests
+name: functional-tests            
 
 on:
   workflow_dispatch:
@@ -347,3 +347,14 @@ jobs:
         run: |
           cd functional_tests
           go test -v
+  otel-export-trace:
+    if: always()
+    name: OpenTelemetry Export Trace
+    runs-on: ubuntu-latest
+    needs: [aks-windows-test,gke-autopilot-upgrade-test,gke-autopilot-test,eks-upgrade-test,eks-test,kubernetes-test] # must run when all jobs are complete
+    steps:
+      - name: Export Workflow Trace
+        uses: inception-health/otel-export-trace-action@latest
+        with:
+          otlpEndpoint: grpc://ingest.eu0.signalfx.com:443/
+          otlpHeaders: ${{ secrets.OTLP_HEADERS }}
